@@ -292,7 +292,11 @@ function doClock() {
     back()
     // 发送打卡记录
     sleep(3000)
-    sendServerChan("打卡结果", send_text)
+    
+    if (currentDate.getHours() === 8 || currentDate.getHours() === 17) {
+        sendServerChan("打卡结果", send_text);
+    }
+    
     sleep(3000)
     send_text = getLastLines(globalLogFilePath, 20) // 获取日志文件
     sendQQEmail("打卡完成", send_text)
