@@ -34,7 +34,7 @@ const PACKAGE_ID_TASKER = "net.dinglisch.android.taskerm"   // Tasker
 const PACKAGE_ID_MAIL_163 = "com.netease.mail"              // 网易邮箱大师
 const PACKAGE_ID_MAIL_ANDROID = "com.android.email"         // 系统内置邮箱
 const PACKAGE_ID_PUSHDEER = "com.pushdeer.os"               // Push Deer
-const PACKAGE_ID_MAIL_QQ = "com.tencent.androidqqmail" // QQ邮箱
+const PACKAGE_ID_MAIL_QQ = "com.tencent.androidqqmail"      // QQ邮箱
 
 
 
