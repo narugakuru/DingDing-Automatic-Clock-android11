@@ -107,12 +107,12 @@ events.onKeyDown("volume_up", function (event) {
         // toast("已中断所有子线程!")
 
         // 可以在此调试各个方法
-        // doClock()
-        console.log("日志地址" + globalLogFilePath)
-        send_text = getLastLines(globalLogFilePath, 20) // 获取日志文件
+        doClock()
+        // console.log("日志地址" + globalLogFilePath)
+        // send_text = getLastLines(globalLogFilePath, 20) // 获取日志文件
         // sendQQMsg(send_text)
         // sendEmail("测试主题", send_text, null)
-        sendQQEmail("测试主题", send_text, null)
+        // sendQQEmail("测试主题", send_text, null)
         // sendServerChan(测试主题, 测试文本)
         // sendPushDeer(测试主题, 测试文本)
     });
@@ -287,21 +287,24 @@ function doClock() {
         clockIn()           // 上班打卡
     else
         clockOut()          // 下班打卡
-
+    
+    sleep(2000)
     console.log("打卡流程结束!")
+    sleep(3000)
     back()
+    sleep(1000)
+    home()
     // 发送打卡记录
     sleep(3000)
     
+    send_text = getLastLines(globalLogFilePath, 25) // 获取日志文件
     if (currentDate.getHours() === 8 || currentDate.getHours() === 17) {
         sendServerChan("打卡结果", send_text);
     }
     
     sleep(3000)
-    send_text = getLastLines(globalLogFilePath, 20) // 获取日志文件
     sendQQEmail("打卡完成", send_text)
     sleep(3000)
-    
     lockScreen()        // 关闭屏幕
 }
 
@@ -393,14 +396,14 @@ function sendQQEmail(title, message, attachFilePath) {
 
     brightScreen()      // 唤醒屏幕
     unlockScreen()      // 解锁屏幕
-
+    // 附件
     if (attachFilePath != null && files.exists(attachFilePath)) {
         console.info(attachFilePath)
         app.sendEmail({
             email: [EMAILL_ADDRESS], subject: title, text: message, attachment: attachFilePath
         })
     }
-    else {
+    else {//不带附件的方法
         console.error(attachFilePath)
         app.sendEmail({
             email: [EMAILL_ADDRESS], subject: title, text: message
@@ -409,21 +412,24 @@ function sendQQEmail(title, message, attachFilePath) {
 
     console.log("选择邮件应用")
     waitForActivity(PACKAGE_ID_MAIL_QQ)
-
-    if (null != textMatches("通过邮件发送").findOne(3000)) {
-        btn_email = textMatches("通过邮件发送").findOnce().parent()
-        btn_email.click()
+    sleep(3000)
+    // 选择QQ邮箱
+    if (null != textMatches("通过邮件发送").findOne(5000)) {
+        btn_email = textMatches("通过邮件发送").findOnce().parent().click()
     }
-    else {
-        console.error("不存在应用: " + PACKAGE_ID_MAIL_163)
-        lockScreen()
-        return;
+    
+    // 等待邮箱加载完毕
+    console.log("等待邮箱加载...")
+    // id：compose_qqmail_uilabel_content_tv
+    if (null != textMatches(EMAILL_ADDRESS_SENDER).findOne(15000)) {
+        console.log("已选择邮箱: " + EMAILL_ADDRESS_SENDER)
     }
     sleep(2000)
     console.log("正在发送邮件...")
     id("topbar_button_right").findOne(3000).click()
     sleep(2000)
     console.log("邮件发送成功!")
+
     home()
     sleep(2000)
     lockScreen()    // 关闭屏幕
@@ -514,7 +520,7 @@ function brightScreen() {
 
     console.log("唤醒设备")
 
-    device.setBrightnessMode(0) // 手动亮度模式
+    // device.setBrightnessMode(0) // 手动亮度模式
     device.setBrightness(SCREEN_BRIGHTNESS)
     device.wakeUpIfNeeded() // 唤醒设备
     device.keepScreenOn()   // 保持亮屏
@@ -687,9 +693,7 @@ function attendKaoqin() {
 
     // textContains("申请").waitFor()
     console.info("已进入考勤界面")
-    sleep(1000)
-
-
+    sleep(3000)
 }
 
 
@@ -734,10 +738,6 @@ function clockIn() {
     }
 
     // handleLate() // 处理迟到打卡
-
-    sleep(3000)
-    home()
-    sleep(1000)
 }
 
 
@@ -748,38 +748,34 @@ function clockOut() {
 
     console.log("下班打卡...")
     console.log("等待连接到考勤机...")
-    sleep(2000)
 
-    if (null != textContains("未连接").findOne(1000)) {
+
+    if (null != textContains("未连接").findOne(3000)) {
         console.error("未连接考勤机, 重新进入考勤界面!")
         back()
         sleep(2000)
         attendKaoqin()
-        return;
+        // return;
     }
 
     // textContains("已连接").waitFor()
     console.info("已连接考勤机")
-    sleep(1000)
 
-    if (null != textMatches("下班打卡").clickable(true).findOne(3000)) {
-        btn_clockout = textMatches("下班打卡").clickable(true).findOnce()
-        btn_clockout.click()
-        console.log("按下打卡按钮")
-        sleep(1000)
-    }
-    else {
+    if (null != textMatches("下班打卡").findOne(10000)) {
+        textMatches("下班打卡").clickable(true).findOnce().click();
+        console.log("按下打卡按钮");
+        
+    }else {
         click(device.width / 2, device.height * 0.560)
         console.log("点击打卡按钮坐标")
     }
-
-    if (null != textContains("早退打卡").clickable(true).findOne(1000)) {
-        className("android.widget.Button").text("早退打卡").clickable(true).findOnce().parent().click()
-        console.warn("早退打卡")
+    
+    if (null != textContains("早退打卡").findOne(5000)) {
+        // className("android.widget.Button").text("早退打卡").clickable(true).findOnce().parent().click()
+        console.warn("未到打卡时间，不执行打卡!!!!!")
+        back()
+        
     }
-    sleep(3000)
-    home()
-    sleep(1000)
 }
 
 
